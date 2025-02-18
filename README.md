@@ -9,7 +9,7 @@
 # Data Test
 1. Proflies
 - https://i.pinimg.com/736x/04/8b/8d/048b8dbc061a104f266176b1b7bf828c.jpg
-- https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-5DZFMC9u5visrUZJ7AqEs9sTp9rkskJLuA&s
+- https://i.redd.it/hpbukc6o6lx71.jpg
   
 2. Background Cover 
 - https://cdn.prod.website-files.com/5b11ccbc11a9de5e0234a27d/5b4e4b3b7c4ce9850696679c_What-You-Need-to-Know-About-Mobile-Web-Design.jpg
