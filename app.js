@@ -228,7 +228,6 @@ async function fetchClasses(uid) {
 }
 
 function manageClassroom(classId) {
-    // TODO: Implement classroom management functionality
-    console.log('Managing classroom:', classId);
-    alert('ฟังก์ชันการจัดการห้องเรียนกำลังอยู่ในระหว่างการพัฒนา');
+    localStorage.setItem('currentClassId', classId);
+    window.location.href = 'classroom.html';
 }
