@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการห้องเรียน</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .classroom-img {
+            height: 200px;
+            object-fit: cover;
+        }
+        .hidden {
+            display: none;
+        }
+        #qrcode {
+            padding: 20px;
+            background: white;
+            display: inline-block;
+        }
+        .student-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="card mb-4">
+            <img id="classPhoto" src="" alt="Class Photo" class="card-img-top classroom-img">
+            <div class="card-body">
+                <h3 id="className"></h3>
+                <p id="classCode" class="text-muted"></p>
+                <p id="classRoom" class="text-muted"></p>
+                <div class="btn-group">
+                    <button id="showQRBtn" class="btn btn-primary">แสดง QR Code</button>
+                    <button id="showStudentsBtn" class="btn btn-info">รายชื่อนักเรียน</button>
+                    <button id="addCheckinBtn" class="btn btn-success">เพิ่มการเช็คชื่อ</button>
+                    <button id="backBtn" class="btn btn-secondary">กลับหน้าหลัก</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="qrModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">QR Code สำหรับลงทะเบียน</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="qrcode"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="studentsList" class="card mb-4 hidden">
+            <div class="card-body">
+                <h4>รายชื่อนักเรียนที่ลงทะเบียน</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ลำดับ</th>
+                                <th>รหัส</th>
+                                <th>รูป</th>
+                                <th>ชื่อ</th>
+                                <th>สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h4>ประวัติการเช็คชื่อ</h4>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ลำดับ</th>
+                                <th>วัน-เวลา</th>
+                                <th>จำนวนคนเข้าเรียน</th>
+                                <th>สถานะ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="checkinHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="checkinScreen" class="hidden">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>เช็คชื่อ</h4>
+                    <div class="btn-group mb-3">
+                        <button id="exitCheckinBtn" class="btn btn-secondary">ออก</button>
+                        <button id="startCheckinBtn" class="btn btn-success">เปิดเช็คชื่อ</button>
+                        <button id="stopCheckinBtn" class="btn btn-warning">ปิดเช็คชื่อ</button>
+                        <button id="saveCheckinBtn" class="btn btn-primary">บันทึกการเช็คชื่อ</button>
+                        <button id="showCheckinCodeBtn" class="btn btn-info">แสดงรหัสเช็คชื่อ</button>
+                        <button id="showClassQRBtn" class="btn btn-dark">แสดง QR Code วิชา</button>
+                        <button id="questionAnswerBtn" class="btn btn-primary">ถาม-ตอบ</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ลำดับ</th>
+                                    <th>รหัส</th>
+                                    <th>ชื่อ</th>
+                                    <th>หมายเหตุ</th>
+                                    <th>วันเวลา</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="checkinTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- หน้าถาม-ตอบ -->
+            <div id="questionScreen" class="card mb-4 hidden">
+                <div class="card-body">
+                    <h4>ถาม-ตอบ</h4>
+                    <div class="mb-3">
+                        <input type="number" id="questionNo" class="form-control mb-2" placeholder="ข้อที่">
+                        <input type="text" id="questionText" class="form-control mb-2" placeholder="คำถาม">
+                        <div class="btn-group">
+                            <button id="startQuestionBtn" class="btn btn-primary">เริ่มถาม</button>
+                            <button id="stopQuestionBtn" class="btn btn-warning">ปิดคำถาม</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>รหัส</th>
+                                    <th>ชื่อ</th>
+                                    <th>คำตอบ</th>
+                                    <th>เวลา</th>
+                                </tr>
+                            </thead>
+                            <tbody id="answersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="classroom.js"></script>
+</body>
+</html>
