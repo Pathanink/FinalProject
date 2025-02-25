@@ -60,6 +60,7 @@
         <div id="studentsList" class="card mb-4 hidden">
             <div class="card-body">
                 <h4>รายชื่อนักเรียนที่ลงทะเบียน</h4>
+                <button id="addStudentBtn" class="btn btn-success mb-3">เพิ่มนักศึกษา</button>
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
@@ -69,10 +70,75 @@
                                 <th>รูป</th>
                                 <th>ชื่อ</th>
                                 <th>สถานะ</th>
+                                <th>จัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="studentsTableBody"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="editStudentModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">แก้ไขข้อมูลนักศึกษา</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editStudentForm">
+                            <input type="hidden" id="editStudentUid">
+                            <div class="mb-3">
+                                <label for="editStudentId" class="form-label">รหัสนักศึกษา</label>
+                                <input type="text" class="form-control" id="editStudentId" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editStudentName" class="form-label">ชื่อ-นามสกุล</label>
+                                <input type="text" class="form-control" id="editStudentName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editStudentPhoto" class="form-label">URL รูปภาพ</label>
+                                <input type="text" class="form-control" id="editStudentPhoto" placeholder="https://...">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editStudentStatus" class="form-label">สถานะ</label>
+                                <select class="form-select" id="editStudentStatus">
+                                    <option value="1">ตรวจสอบแล้ว</option>
+                                    <option value="0">รอตรวจสอบ</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">บันทึกการแก้ไข</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal fade" id="addStudentModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">เพิ่มนักศึกษา</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addStudentForm">
+                            <div class="mb-3">
+                                <label for="studentId" class="form-label">รหัสนักศึกษา</label>
+                                <input type="text" class="form-control" id="studentId" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="studentName" class="form-label">ชื่อ-นามสกุล</label>
+                                <input type="text" class="form-control" id="studentName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="studentPhoto" class="form-label">URL รูปภาพ (ไม่บังคับ)</label>
+                                <input type="text" class="form-control" id="studentPhoto" placeholder="https://...">
+                            </div>
+                            <button type="submit" class="btn btn-primary">บันทึก</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
