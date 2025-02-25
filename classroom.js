@@ -25,6 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadClassInfo();
     loadCheckinHistory();
     initQRCode();
+    
+    document.getElementById('editStudentForm').addEventListener('submit', updateStudent);
+    
+    document.getElementById('addStudentBtn').addEventListener('click', () => {
+        const modal = new bootstrap.Modal(document.getElementById('addStudentModal'));
+        modal.show();
+    });
+
+    document.getElementById('addStudentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await addNewStudent();
+    });
 
     document.getElementById('showQRBtn').addEventListener('click', () => {
         const modal = new bootstrap.Modal(document.getElementById('qrModal'));
@@ -101,6 +113,12 @@ async function loadStudents() {
                     <td><img src="${student.photo || 'https://via.placeholder.com/40'}" class="student-img"></td>
                     <td>${student.name}</td>
                     <td>${student.status === 1 ? 'ตรวจสอบแล้ว' : 'รอตรวจสอบ'}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" 
+                                onclick="openEditStudentModal('${doc.id}')">
+                            แก้ไข
+                        </button>
+                    </td>
                 </tr>
             `;
             tbody.innerHTML += row;
@@ -108,6 +126,30 @@ async function loadStudents() {
     } catch (error) {
         console.error('Error loading students:', error);
         alert('เกิดข้อผิดพลาดในการโหลดรายชื่อนักเรียน');
+    }
+}
+
+async function openEditStudentModal(studentUid) {
+    try {
+        const doc = await db.collection('classroom').doc(classId)
+            .collection('students').doc(studentUid).get();
+            
+        if (doc.exists) {
+            const student = doc.data();
+            document.getElementById('editStudentUid').value = studentUid;
+            document.getElementById('editStudentId').value = student.stdid;
+            document.getElementById('editStudentName').value = student.name;
+            document.getElementById('editStudentPhoto').value = student.photo || '';
+            document.getElementById('editStudentStatus').value = student.status;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+            modal.show();
+        } else {
+            alert('ไม่พบข้อมูลนักศึกษา');
+        }
+    } catch (error) {
+        console.error('Error loading student data:', error);
+        alert('เกิดข้อผิดพลาดในการโหลดข้อมูลนักศึกษา');
     }
 }
 
@@ -571,5 +613,155 @@ async function updateScore(studentId, field, value) {
     } catch (error) {
         console.error('Error updating score:', error);
         alert('เกิดข้อผิดพลาดในการอัปเดตคะแนน');
+    }
+}
+
+async function updateStudent(e) {
+    e.preventDefault();
+    
+    const studentUid = document.getElementById('editStudentUid').value;
+    const studentId = document.getElementById('editStudentId').value;
+    const studentName = document.getElementById('editStudentName').value;
+    const studentPhoto = document.getElementById('editStudentPhoto').value;
+    const studentStatus = parseInt(document.getElementById('editStudentStatus').value);
+    
+    try {
+        const studentDoc = await db.collection('classroom').doc(classId)
+            .collection('students').doc(studentUid).get();
+        const currentStudentId = studentDoc.data().stdid;
+        
+        if (currentStudentId !== studentId) {
+            const existingStudent = await db.collection('classroom').doc(classId)
+                .collection('students').where('stdid', '==', studentId).get();
+                
+            if (!existingStudent.empty) {
+                alert('รหัสนักศึกษานี้มีอยู่ในระบบแล้ว');
+                return;
+            }
+            
+            const checkinSnapshot = await db.collection('classroom').doc(classId)
+                .collection('checkin').get();
+                
+            const batch = db.batch();
+            
+            for (const checkinDoc of checkinSnapshot.docs) {
+                const oldScoreDoc = await db.collection('classroom').doc(classId)
+                    .collection('checkin').doc(checkinDoc.id)
+                    .collection('scores').doc(currentStudentId).get();
+                
+                if (oldScoreDoc.exists) {
+                    const scoreData = oldScoreDoc.data();
+                    
+                    const newScoreRef = db.collection('classroom').doc(classId)
+                        .collection('checkin').doc(checkinDoc.id)
+                        .collection('scores').doc(studentId);
+                        
+                    batch.set(newScoreRef, {
+                        ...scoreData,
+                        name: studentName 
+                    });
+                    
+                    
+                    const oldScoreRef = db.collection('classroom').doc(classId)
+                        .collection('checkin').doc(checkinDoc.id)
+                        .collection('scores').doc(currentStudentId);
+                        
+                    batch.delete(oldScoreRef);
+                }
+            }
+            
+            await batch.commit();
+        } else {
+            const checkinSnapshot = await db.collection('classroom').doc(classId)
+                .collection('checkin').get();
+                
+            const batch = db.batch();
+            
+            checkinSnapshot.docs.forEach(checkinDoc => {
+                const scoreRef = db.collection('classroom').doc(classId)
+                    .collection('checkin').doc(checkinDoc.id)
+                    .collection('scores').doc(studentId);
+                    
+                batch.update(scoreRef, { name: studentName });
+            });
+            
+            await batch.commit();
+        }
+    
+        await db.collection('classroom').doc(classId)
+            .collection('students').doc(studentUid)
+            .update({
+                stdid: studentId,
+                name: studentName,
+                photo: studentPhoto || 'https://via.placeholder.com/40',
+                status: studentStatus
+            });
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
+        modal.hide();
+        
+        loadStudents();
+        
+        alert('แก้ไขข้อมูลนักศึกษาเรียบร้อยแล้ว');
+    } catch (error) {
+        console.error('Error updating student:', error);
+        alert('เกิดข้อผิดพลาดในการแก้ไขข้อมูลนักศึกษา');
+    }
+}
+
+async function addNewStudent() {
+    try {
+        const studentId = document.getElementById('studentId').value;
+        const studentName = document.getElementById('studentName').value;
+        const studentPhoto = document.getElementById('studentPhoto').value;
+        
+        const existingStudent = await db.collection('classroom').doc(classId)
+            .collection('students').where('stdid', '==', studentId).get();
+            
+        if (!existingStudent.empty) {
+            alert('รหัสนักศึกษานี้มีอยู่ในระบบแล้ว');
+            return;
+        }
+        
+        await db.collection('classroom').doc(classId)
+            .collection('students').add({
+                stdid: studentId,
+                name: studentName,
+                photo: studentPhoto || 'https://via.placeholder.com/40',
+                status: 1, 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+        const checkinSnapshot = await db.collection('classroom').doc(classId)
+            .collection('checkin').get();
+            
+        const batch = db.batch();
+        checkinSnapshot.docs.forEach(doc => {
+            const scoreRef = db.collection('classroom').doc(classId)
+                .collection('checkin').doc(doc.id)
+                .collection('scores').doc(studentId);
+                
+            batch.set(scoreRef, {
+                uid: '', 
+                name: studentName,
+                status: 0,
+                score: 0,
+                remark: ''
+            });
+        });
+        
+        await batch.commit();
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+        modal.hide();
+        
+        document.getElementById('addStudentForm').reset();
+        
+        loadStudents();
+        
+        alert('เพิ่มนักศึกษาเรียบร้อยแล้ว');
+    } catch (error) {
+        console.error('Error adding student:', error);
+        alert('เกิดข้อผิดพลาดในการเพิ่มนักศึกษา');
     }
 }
