@@ -156,7 +156,7 @@ async function openEditStudentModal(studentUid) {
 async function loadCheckinHistory() {
     try {
         const snapshot = await db.collection('classroom').doc(classId)
-            .collection('checkin').orderBy('date', 'desc').get();
+            .collection('checkin').orderBy('date', 'asc').get();
         
         const tbody = document.getElementById('checkinHistoryBody');
         tbody.innerHTML = '';
@@ -234,7 +234,22 @@ async function createCheckin() {
 
 async function manageCheckin(cno) {
     currentCheckinNo = cno;
+    document.querySelector('.card.mb-4:has(#checkinHistoryBody)').classList.add('hidden');
     document.getElementById('checkinScreen').classList.remove('hidden');
+
+    try {
+        const checkinDoc = await db.collection('classroom').doc(classId)
+            .collection('checkin').doc(currentCheckinNo).get();
+        const checkinData = checkinDoc.data();
+        
+        if (checkinData && checkinData.date) {
+            document.getElementById('checkinDateHeader').textContent = 
+                `วันที่เช็คชื่อ: ${checkinData.date}`;
+        }
+    } catch (error) {
+        console.error('Error fetching check-in date:', error);
+    }
+    
     loadCheckinStudents();
     setupRealtimeListeners();
 }
@@ -416,6 +431,8 @@ function showClassQR() {
 function exitCheckin() {
     document.getElementById('checkinScreen').classList.add('hidden');
     document.getElementById('questionScreen').classList.add('hidden');
+    document.querySelector('.card.mb-4:has(#checkinHistoryBody)').classList.remove('hidden');
+    document.getElementById('studentsList').classList.add('hidden');
     if (unsubscribeStudents) unsubscribeStudents();
     if (unsubscribeAnswers) unsubscribeAnswers();
     currentCheckinNo = null;
