@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('questionHistorySelect').addEventListener('change', function() {
         onQuestionSelect(this.value);
     });
-    
+
     document.getElementById('editStudentForm').addEventListener('submit', updateStudent);
     
     document.getElementById('addStudentBtn').addEventListener('click', () => {
@@ -573,7 +573,6 @@ async function loadAnswers(questionNo) {
         });
     } catch (error) {
         console.error('Error loading answers:', error);
-        alert('เกิดข้อผิดพลาดในการโหลดคำตอบ');
     }
 }
 
