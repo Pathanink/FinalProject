@@ -195,10 +195,16 @@
                 </div>
             </div>
 
-            <!-- หน้าถาม-ตอบ -->
+
             <div id="questionScreen" class="card mb-4 hidden">
                 <div class="card-body">
                     <h4>ถาม-ตอบ</h4>
+                    <div class="mb-3">
+                        <label for="questionHistorySelect" class="form-label">เลือกข้อคำถาม</label>
+                        <select id="questionHistorySelect" class="form-select">
+                            <option value="">-- เลือกข้อคำถาม --</option>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <input type="number" id="questionNo" class="form-control mb-2" placeholder="ข้อที่">
                         <input type="text" id="questionText" class="form-control mb-2" placeholder="คำถาม">

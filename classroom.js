@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCheckinHistory();
     initQRCode();
     
+    document.getElementById('questionHistorySelect').addEventListener('change', function() {
+        onQuestionSelect(this.value);
+    });
+    
     document.getElementById('editStudentForm').addEventListener('submit', updateStudent);
     
     document.getElementById('addStudentBtn').addEventListener('click', () => {
@@ -249,7 +253,7 @@ async function manageCheckin(cno) {
     } catch (error) {
         console.error('Error fetching check-in date:', error);
     }
-    
+
     loadCheckinStudents();
     setupRealtimeListeners();
 }
@@ -443,6 +447,31 @@ function toggleQuestionScreen() {
     questionScreen.classList.toggle('hidden');
     if (!questionScreen.classList.contains('hidden')) {
         loadCurrentQuestion();
+        loadQuestionHistory();
+    }
+}
+
+async function onQuestionSelect(questionNo) {
+    if (!questionNo) {
+        document.getElementById('answersTableBody').innerHTML = '';
+        return;
+    }
+    
+    try {
+        const questionDoc = await db.collection('classroom').doc(classId)
+            .collection('checkin').doc(currentCheckinNo)
+            .collection('answers').doc(questionNo).get();
+            
+        if (questionDoc.exists) {
+            const questionData = questionDoc.data();
+            document.getElementById('questionNo').value = questionNo;
+            document.getElementById('questionText').value = questionData.text || '';
+            
+            loadAnswers(questionNo);
+        }
+    } catch (error) {
+        console.error('Error loading selected question:', error);
+        alert('เกิดข้อผิดพลาดในการโหลดข้อคำถามที่เลือก');
     }
 }
 
@@ -455,6 +484,13 @@ async function loadCurrentQuestion() {
         if (data.question_no) {
             document.getElementById('questionNo').value = data.question_no;
             document.getElementById('questionText').value = data.question_text || '';
+            
+            const select = document.getElementById('questionHistorySelect');
+            if (select) {
+                setTimeout(() => {
+                    select.value = data.question_no;
+                }, 500); 
+            }
         }
         
         loadAnswers(data.question_no);
@@ -780,5 +816,30 @@ async function addNewStudent() {
     } catch (error) {
         console.error('Error adding student:', error);
         alert('เกิดข้อผิดพลาดในการเพิ่มนักศึกษา');
+    }
+}
+
+async function loadQuestionHistory() {
+    try {
+        const snapshot = await db.collection('classroom').doc(classId)
+            .collection('checkin').doc(currentCheckinNo)
+            .collection('answers').get();
+        
+        if (snapshot.empty) {
+            document.getElementById('questionHistorySelect').innerHTML = '<option value="">ไม่พบข้อคำถาม</option>';
+            return;
+        }
+        
+        const select = document.getElementById('questionHistorySelect');
+        select.innerHTML = '<option value="">-- เลือกข้อคำถาม --</option>';
+        
+        snapshot.docs.forEach(doc => {
+            const questionNo = doc.id;
+            const questionData = doc.data();
+            select.innerHTML += `<option value="${questionNo}">${questionNo}. ${questionData.text}</option>`;
+        });
+    } catch (error) {
+        console.error('Error loading question history:', error);
+        alert('เกิดข้อผิดพลาดในการโหลดประวัติคำถาม');
     }
 }
